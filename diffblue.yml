@@ -1,0 +1,830 @@
+buildCmd: ant download_jars compile-tests
+testCmd: true
+skipVerification: true
+cbmcArguments:
+  # Do not generate coverage comments on generated tests.
+  java-generate-no-comments: true
+  # Constrain the size of arrays created in the analyzed code.
+  java-max-vla-length: 100000
+phases:
+  -
+    # Phase 0 PRETTY, SIMPLE and SMART - pretty tests, do not test private methods directly, Smart-Harness
+    timeout: 180
+    cbmcArguments:
+      # Use simple models first containers (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 1500
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 1
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # Instrument the file as opposed to the function only
+      cover-only: file
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Instantiate classes using the simplest constructor strategy
+      smart-harness: simplest-constructor-and-nondet
+  -
+    # Phase 1 PRETTY AND COMPLEX - standard models only, pretty tests, do not test private methods directly, input factory
+    timeout: 180
+    cbmcArguments:
+      # Use the standard models library
+      classpath: '/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 2
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+      # Limit input factory recursive depth (default 0 = no recursion allowed)
+      java-test-input-factory-bmc-recursion-limit: 4
+  -
+    # Phase 2 FIFO Strategy - pretty tests, do not test private methods directly, fifo
+    timeout: 100
+    cbmcArguments:
+      # Use the standard models library
+      classpath: '/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Add constraint that strings are printable
+      max-nondet-string-length: 100
+      # Explores the program tree breadth-first.
+      paths: fifo
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: false
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+  -
+    # Phase 3 Exceptions - do not test private methods directly
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: false
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Bound the length of input strings.
+      max-nondet-string-length: 30
+      # Add constraint that strings are printable
+      string-printable: false
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: true
+      # Set an upper bound on loop unwinding.
+      unwind: 3
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+  -
+    # Phase 4 Direct testing - test private methods directly, increased reflection
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 1500
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 10
+      # Bound the length of input strings.
+      max-nondet-string-length: 10
+      # Add constraint that strings are printable
+      string-printable: true
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: false
+      # Set an upper bound on loop unwinding.
+      unwind: 1
+      # Set string input value
+      string-input-value: ["foo", "Bar", "BAZ", "1234", "1a 2b 3c", "A1B2C3", "a,b,c", "1", "2", "3", "a/b/c", "a'b'c", ",", "/", "'"]
+      # If the logs contain output of the following then proceed to phase X
+    nextPhase:
+      # If the function is not analysable then do not pass onto the next phase
+      not_analyzed: null
+  -
+    # PHASE 5 Mocking - aggressive mocking, do not test private methods directly
+    timeout: 180
+    cbmcArguments:
+      # Use simple models containers first (ArrayList, HashMap, HashSet,...) will have a maximum size of one.
+      classpath: '/tools/cbmc/models-simple-overlay.jar:/tools/cbmc/models.jar:.'
+      # Set a limit on the number of instructions that can be generated as part of a test trace.
+      depth: 3000
+      # never initialize reference-typed parameter to the entry point with null
+      java-assume-inputs-non-null: true
+      # Only load the class (and related inner/outer classes) containing the method under test,
+      load-containing-class-only: true
+      # Maximum allowed length for an array passed as test input.
+      max-nondet-array-length: 30
+      # Bound the length of input strings.
+      max-nondet-string-length: 100
+      # Add constraint that strings are printable
+      string-printable: false
+      # Make implicit runtime exceptions explicit.
+      throw-runtime-exceptions: true
+      # Set an upper bound on loop unwinding.
+      unwind: 3
+      # Do not test any methods that have the specified access level.
+      do-not-test-methods-with-access: [private]
+      # Instrument the entry point function only.
+      cover-function-only: false
+      # instrument the file as opposed to the function only
+      cover-only: file
+units:
+ - target:
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/proxy/HttpReplyHdr.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/proxy/HttpReplyHdr.java
+ - target:
+   - dir: build/core
+     file: org/apache/jmeter/reporters/ResultCollector.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/ResultCollector.java
+   - dir: build/core
+     file: org/apache/jmeter/save/CSVSaveService$StringQuoter.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/save/CSVSaveService.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleResult.java
+   - dir: build/core
+     file: org/apache/jmeter/reporters/ResultCollector$ShutdownHook.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/ResultCollector.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/AbstractTestElement.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/AbstractTestElement.java
+   - dir: build/core
+     file: org/apache/jmeter/reporters/Summariser$Totals.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/Summariser.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/MultiProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/MultiProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/StatisticalSampleResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/StatisticalSampleResult.java
+   - dir: build/core
+     file: org/apache/jmeter/control/TransactionController.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/control/TransactionController.java
+   - dir: build/core
+     file: org/apache/jmeter/save/SaveService.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/save/SaveService.java
+   - dir: build/core
+     file: org/apache/jmeter/reporters/ResultCollector$FileEntry.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/ResultCollector.java
+   - dir: build/core
+     file: org/apache/jmeter/reporters/AbstractListenerElement.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/AbstractListenerElement.java
+   - dir: build/core
+     file: org/apache/jmeter/threads/JMeterContextService.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/threads/JMeterContextService.java
+   - dir: build/core
+     file: org/apache/jmeter/save/CSVSaveService.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/save/CSVSaveService.java
+   - dir: build/core
+     file: org/apache/jmeter/reporters/Summariser.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/Summariser.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/NullProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/NullProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/reporters/ResultCollectorHelper.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/ResultCollectorHelper.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/JMeterProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/JMeterProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/BooleanProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/BooleanProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/assertions/AssertionResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/assertions/AssertionResult.java
+   - dir: build/core
+     file: org/apache/jmeter/services/FileServer.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/services/FileServer.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/AbstractProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/AbstractProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/gui/GuiPackage.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/gui/GuiPackage.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/StringProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/StringProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/ObjectProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/ObjectProperty.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JMeterError.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JMeterError.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/PropertyIterator.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/PropertyIterator.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/PropertyIteratorImpl.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/PropertyIteratorImpl.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleEvent.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleEvent.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JOrphanUtils.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JOrphanUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/TestElement.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/TestElement.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/reflect/Functor.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/reflect/Functor.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleSaveConfiguration.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleSaveConfiguration.java
+   - dir: build/core
+     file: org/apache/jmeter/reporters/SummariserRunningSample.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/SummariserRunningSample.java
+   - dir: build/core
+     file: org/apache/jmeter/threads/JMeterContextService$ThreadCounts.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/threads/JMeterContextService.java
+   - dir: build/core
+     file: org/apache/jmeter/visualizers/Visualizer.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/visualizers/Visualizer.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleResult$NanoOffset.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleResult.java
+ - target:
+   - dir: build/components
+     file: org/apache/jmeter/config/CSVDataSetBeanInfo.class
+     sourceDir: src/components
+     sourceFile: org/apache/jmeter/config/CSVDataSetBeanInfo.java
+   - dir: build/core
+     file: org/apache/jmeter/testbeans/gui/GenericTestBeanCustomizer.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testbeans/gui/GenericTestBeanCustomizer.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JOrphanUtils.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JOrphanUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/testbeans/BeanInfoSupport.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testbeans/BeanInfoSupport.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+ - target:
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/sampler/HTTPSamplerBase.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/sampler/HTTPSamplerBase.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/control/CacheManager.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/control/CacheManager.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/util/HTTPFileArg.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/util/HTTPFileArg.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/AbstractSampler.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/AbstractSampler.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleResult.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/control/CookieManager.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/control/CookieManager.java
+   - dir: build/core
+     file: org/apache/jmeter/report/utils/MetricUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/utils/MetricUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/AbstractTestElement.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/AbstractTestElement.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/sampler/HTTPSamplerBase$ASyncSample.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/sampler/HTTPSamplerBase.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/MultiProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/MultiProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/threads/JMeterContextService.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/threads/JMeterContextService.java
+   - dir: build/core
+     file: org/apache/jmeter/engine/event/LoopIterationEvent.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/engine/event/LoopIterationEvent.java
+   - dir: build/core
+     file: org/apache/jmeter/threads/JMeterVariables.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/threads/JMeterVariables.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/IntegerProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/IntegerProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/PropertyIteratorImpl.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/PropertyIteratorImpl.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/control/DNSCacheManager.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/control/DNSCacheManager.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/parser/BaseParser.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/parser/BaseParser.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/MapProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/MapProperty.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/sampler/ResourcesDownloader.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/sampler/ResourcesDownloader.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/TestElementProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/TestElementProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/PropertyIterator.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/PropertyIterator.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/NullProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/NullProperty.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/control/AuthManager.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/control/AuthManager.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/JMeterProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/JMeterProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/sampler/HTTPSamplerBase$SourceType.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/sampler/HTTPSamplerBase.java
+   - dir: build/core
+     file: org/apache/jmeter/config/ConfigTestElement.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/config/ConfigTestElement.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/AbstractProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/AbstractProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/config/Arguments.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/config/Arguments.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/StringProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/StringProperty.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/control/Cookie.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/control/Cookie.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/util/EncoderCache.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/util/EncoderCache.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/CollectionProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/CollectionProperty.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/control/HeaderManager.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/control/HeaderManager.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils$DummyResourceBundle.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/config/Argument.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/config/Argument.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/NumberProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/NumberProperty.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/sampler/HTTPSampleResult.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/sampler/HTTPSampleResult.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/parser/LinkExtractorParseException.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/parser/LinkExtractorParseException.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/util/ConversionUtils.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/util/ConversionUtils.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JOrphanUtils.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JOrphanUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/TestPlan.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/TestPlan.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/TestElement.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/TestElement.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/util/DirectAccessByteArrayOutputStream.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/util/DirectAccessByteArrayOutputStream.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/sampler/ResourcesDownloader$AsynSamplerResultHolder.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/sampler/ResourcesDownloader.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/util/HTTPFileArgs.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/util/HTTPFileArgs.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/control/Header.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/control/Header.java
+   - dir: build/core
+     file: org/apache/jmeter/threads/JMeterContext.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/threads/JMeterContext.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/util/HTTPArgument.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/util/HTTPArgument.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/parser/LinkExtractorParser.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/parser/LinkExtractorParser.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/BooleanProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/BooleanProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/Entry.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/Entry.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleResult$NanoOffset.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleResult.java
+ - target:
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleResult.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleSaveConfiguration.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleSaveConfiguration.java
+   - dir: build/core
+     file: org/apache/jmeter/threads/JMeterContext$TestLogicalAction.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/threads/JMeterContext.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/TestPlan.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/TestPlan.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/assertions/AssertionResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/assertions/AssertionResult.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleResult$NanoOffset.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleResult.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JOrphanUtils.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JOrphanUtils.java
+ - target:
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/util/ConversionUtils.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/util/ConversionUtils.java
+ - target:
+   - dir: build/core
+     file: org/apache/jmeter/save/CSVSaveService.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/save/CSVSaveService.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/AbstractProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/AbstractProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/reporters/ResultCollector.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/reporters/ResultCollector.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleResult.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JMeterError.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JMeterError.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/AbstractTestElement.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/AbstractTestElement.java
+   - dir: build/core
+     file: org/apache/jmeter/save/CSVSaveService$StringQuoter.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/save/CSVSaveService.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleEvent.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleEvent.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/StatisticalSampleResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/StatisticalSampleResult.java
+   - dir: build/core
+     file: org/apache/jmeter/save/SaveService.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/save/SaveService.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/reflect/Functor.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/reflect/Functor.java
+   - dir: build/core
+     file: org/apache/jmeter/assertions/AssertionResult.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/assertions/AssertionResult.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleSaveConfiguration.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleSaveConfiguration.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/NullProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/NullProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/visualizers/Visualizer.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/visualizers/Visualizer.java
+   - dir: build/core
+     file: org/apache/jmeter/testelement/property/JMeterProperty.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/testelement/property/JMeterProperty.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/samplers/SampleResult$NanoOffset.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/samplers/SampleResult.java
+ - target:
+   - dir: build/jorphan
+     file: org/apache/log/Priority.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/log/Priority.java
+ - target:
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/curl/BasicCurlParser.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/curl/BasicCurlParser.java
+   - dir: build/jorphan
+     file: org/apache/commons/cli/avalon/Token.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/commons/cli/avalon/Token.java
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/curl/BasicCurlParser$Request.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/curl/BasicCurlParser.java
+   - dir: build/jorphan
+     file: org/apache/commons/cli/avalon/CLOption.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/commons/cli/avalon/CLOption.java
+   - dir: build/jorphan
+     file: org/apache/commons/cli/avalon/CLArgsParser.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/commons/cli/avalon/CLArgsParser.java
+   - dir: build/jorphan
+     file: org/apache/commons/cli/avalon/ParserControl.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/commons/cli/avalon/ParserControl.java
+   - dir: build/jorphan
+     file: org/apache/commons/cli/avalon/CLOptionDescriptor.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/commons/cli/avalon/CLOptionDescriptor.java
+ - target:
+   - dir: build/core
+     file: org/apache/jmeter/report/core/TimeHelper.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/core/TimeHelper.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+ - target:
+   - dir: build/core
+     file: org/apache/jmeter/report/config/ReportGeneratorConfiguration.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/config/ReportGeneratorConfiguration.java
+   - dir: build/core
+     file: org/apache/jmeter/report/core/ConvertException.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/core/ConvertException.java
+   - dir: build/core
+     file: org/apache/jmeter/report/config/ReportGeneratorConfiguration$SubConfigurationFactory.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/config/ReportGeneratorConfiguration.java
+   - dir: build/core
+     file: org/apache/jmeter/report/config/ConfigurationException.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/config/ConfigurationException.java
+   - dir: build/core
+     file: org/apache/jmeter/report/config/ReportGeneratorConfiguration$ExporterConfigurationFactory.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/config/ReportGeneratorConfiguration.java
+   - dir: build/core
+     file: org/apache/jmeter/report/config/ConfigurationUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/config/ConfigurationUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/report/config/SubConfiguration.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/config/SubConfiguration.java
+   - dir: build/core
+     file: org/apache/jmeter/report/core/Converters.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/core/Converters.java
+   - dir: build/core
+     file: org/apache/jmeter/report/config/ReportGeneratorConfiguration$GraphConfigurationFactory.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/config/ReportGeneratorConfiguration.java
+   - dir: build/core
+     file: org/apache/jmeter/report/core/StringConverter.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/report/core/StringConverter.java
+ - target:
+   - dir: build/protocol/http
+     file: org/apache/jmeter/protocol/http/util/Base64Encoder.class
+     sourceDir: src/protocol/http
+     sourceFile: org/apache/jmeter/protocol/http/util/Base64Encoder.java
+ - target:
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/util/LocaleChangeListener.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/LocaleChangeListener.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/reflect/ClassFinder$AnnoClassFilter.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/reflect/ClassFinder.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils$DummyResourceBundle.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/util/LocaleChangeEvent.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/LocaleChangeEvent.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/reflect/ClassFinder$ExtendsClassFilter.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/reflect/ClassFinder.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterVersion.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterVersion.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JMeterError.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JMeterError.java
+   - dir: build/core
+     file: org/apache/jmeter/util/JMeterUtils$1.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/util/JMeterUtils.java
+   - dir: build/core
+     file: org/apache/jmeter/threads/JMeterContextService.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/threads/JMeterContextService.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/reflect/ClassFilter.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/reflect/ClassFilter.java
+   - dir: build/core
+     file: org/apache/jmeter/gui/GuiPackage.class
+     sourceDir: src/core
+     sourceFile: org/apache/jmeter/gui/GuiPackage.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/reflect/ClassFinder.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/reflect/ClassFinder.java
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JOrphanUtils.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JOrphanUtils.java
+ - target:
+   - dir: build/jorphan
+     file: org/apache/jorphan/util/JOrphanUtils.class
+     sourceDir: src/jorphan
+     sourceFile: org/apache/jorphan/util/JOrphanUtils.java
